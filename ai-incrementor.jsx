@@ -1,7 +1,6 @@
 /**
  * @author Shane Jennings <cshanejennings@gmail.com>
- * @url
-C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-incrementor.jsx
+ * @url C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-incrementor.jsx
  */
 #target illustrator
 #script "Ai Incrementor"
@@ -12,13 +11,6 @@ C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-increment
 
 /** end dialog.jsx code **/
 
-
-// https://ioconsolerykerprod.blob.core.windows.net/adobe-apiplatform-prod-ioconsole-cdn/installers/ai/scripting/2022/vb_script/v2/Illustrator%20VBScript%20Reference.pdf?sv=2020-04-08&se=2022-06-17T02%3A08%3A18Z&sr=c&sp=r&sig=qX4f2Lxcf7uX%2FnqeS6vRbeya1Ej4h4ZS0jkck9%2FWvEY%3D
-// https://ai-scripting.docsforadobe.dev/introduction/viewingTheObjectModel.html
-// https://ai-scripting.docsforadobe.dev/introduction/executingScripts.html
-// https://helpx.adobe.com/in/illustrator/using/automation-scripts.html
-// https://developer.adobe.com/console/home
-// https://community.adobe.com/t5/illustrator-discussions/how-can-i-create-a-shortcut-to-execute-a-script/m-p/10524390
 // polyfills (not all are used)
 Array.prototype.map=function(c){var a=[],i=0,t=this;for(i;i<t.length;i++){a.push(c(t[i],i,t));}return a;}
 Array.prototype.filter=function(c){var a=[],i=0,t=this;for(i;i<t.length;i++){if(c.call(t,t[i],i,t)){a.push(t[i]);}}return a;}
@@ -67,7 +59,6 @@ function map_numbers(txt, i) {
 
 function create_from_labels() {
   dialog.hide();
-  alert('create_from_labels called');
   var textFrames = filter_elements_from_selection(create_element_node_test("typename", "TextFrame"))
     .sort(sort_text_fields_left_to_right)
     .filter(filter_text_fields_by_content_regex(/^[#]*$/))
@@ -77,3 +68,8 @@ function create_from_labels() {
 function create_from_rectangle() {}
 
 var dialog = get_dialog(create_from_labels, create_from_rectangle);
+dialog.init();
+
+/**
+C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-incrementor.jsx
+**/

@@ -351,7 +351,9 @@ var create_from_rect_btn = rectangle_import_settings_panel.add("button", undefin
   create_from_rect_btn.text = "Create";
   create_from_rect_btn.alignment = ["fill","top"];
 
-auto_increment_dialog.show();
+
+// IMPORTANT:: remove the line below from the script generator
+// auto_increment_dialog.show();
 
 /** end generated javascript **/
 
@@ -389,8 +391,7 @@ function toggle_tick_marks() {
   tick_mark_placement_value.enabled = enabled;
 }
 
-tick_marks_enable_checkbox.onChange = toggle_tick_marks;
-toggle_tick_marks();
+tick_marks_enable_checkbox.onClick = toggle_tick_marks;
 
 function set_tick_mark_length() {
   var length = Math.round(tick_marks_height_slider.value);
@@ -398,55 +399,60 @@ function set_tick_mark_length() {
   tick_marks_height_value.text = setting.tick_marks.length + "%";
 }
 tick_marks_height_slider.onChange = set_tick_mark_length;
-set_tick_mark_length();
 
-tick_marks_height_value.onChange = function() { try {
+function set_tick_marks_by_input() { try {
     var str = tick_marks_height_value.text,
-        length = str.match(/^[\d]*/)[0];
+        length = parseInt(str.match(/^[\d]*/)[0], 10);
+    tick_marks_height_slider.value = length;
     setting.tick_marks.length = length;
-    tick_marks_height_value.text = setting.tick_marks.length + "%";
+    tick_marks_height_value.text = String(length) + "%";
 } catch (e) { set_tick_mark_length(); } }
+
+tick_marks_height_value.onChange = set_tick_marks_by_input;
 
 // Above Label,Left of Label,Right of Label,Below Label
 function update_placement() {
-  var selected_index = tick_mark_placement_value.selection;
+  var selected_index = parseInt(tick_mark_placement_value.selection, 10);
   var placement = tick_mark_placement_value_array[selected_index];
   setting.tick_marks.placement = placement;
 }
 tick_mark_placement_value.onChange = update_placement;
-update_placement();
 
 function update_increment() { // "1"
   setting.labels.increment = parseInt(label_increment_value.text, 10);
 }
 label_increment_value.onChange = update_increment;
-update_increment();
 
 function update_template() { // "#"
   setting.labels.template = label_suffix_value.text;
 }
 label_suffix_value.onChange = update_template;
-update_template()
 
 function update_label_count() { // "18"
   setting.import_from.rectangle.label_count = parseInt(label_count_value.text, 10);
 }
 label_count_value.onChange = update_label_count;
-update_label_count();
-
 
 create_from_label_btn.onClick = create_from_labels;
 create_from_rect_btn.onClick = create_from_rectangle;
 
-
-
-function show() { auto_increment_dialog.show(); }
 function hide() { auto_increment_dialog.hide(); }
 
+function init(import_type) {
+  tick_marks_enable_checkbox.value = true;
+  update_label_count();
+  update_template()
+  update_increment();
+  update_placement();
+  set_tick_mark_length();
+  toggle_tick_marks();
+  auto_increment_dialog.show();
+}
+
   return {
-    show,
-    hide,
-    set_import_type_to,
-    setting
+    init: init,
+    hide: hide,
+    set_import_type_to: set_import_type_to,
+    setting: setting
   }
 }
