@@ -7,8 +7,6 @@
 
 /** begin dialog.jsx code **/
 
-
-
 /** end dialog.jsx code **/
 
 // polyfills (not all are used)
@@ -40,34 +38,78 @@ function filter_text_fields_by_content_regex(regex) {
 }
 
 // https://ai-scripting.docsforadobe.dev/jsobjref/Lines.html
-function add_tick_mark(x, top, h) {
-  var bottom = top + h;
-  app.activeDocument.pathItems.add().setEntirePath([[x, top], [x, bottom]]);
+function add_tick_mark(props, placement) {
+  var points = [],
+      length = props.length,
+      start = { x: props.center.x, y: props.center.y },
+      line = app.activeDocument.pathItems.add();
+  switch (placement) {
+    case "Above Label": start.y = props.top + props.offset;
+      points.push([ start.x, start.y ]);
+      points.push([ start.x, start.y + length ]);
+    break;
+    case "Below Label": start.y = props.bottom - props.offset;
+      points.push([ start.x, start.y ]);
+      points.push([ start.x, start.y - length]);
+    break;
+    case "Left of Label": start.x = props.left - props.offset;
+        points.push([start.x, start.y]);
+        points.push([start.x - length, start.y]);
+    break;
+    case "Right of Label": start.x = props.right + props.offset;
+      points.push([ start.x, start.y]);
+      points.push([ start.x + length, start.y]);
+    break;
+    default:
+  }
+  line.stroked = true;
+  line.setEntirePath(points);
 }
 
 // https://ai-scripting.docsforadobe.dev/jsobjref/TextFrameItem.html
 function map_numbers(txt, i) {
-  var num = i + 1,
+  var setting = dialog.setting,
+      inc = setting.labels.increment,
+      tick_marks = setting.tick_marks,
+      num = (i * inc) + inc,
       pad = txt.contents.replace(/#/g, "0"),
       contents = (pad + num).substr(-pad.length);
   txt.paragraphs[0].justification = Justification.CENTER;
   txt.contents = (parseInt(contents, 10) === num) ? contents : num;
-  var x = (txt.left + (txt.width / 2)), y = (txt.top + (txt.height / 2));
-  add_tick_mark(x, y, txt.height);
+  if (tick_marks.enabled) {
+    add_tick_mark({
+      offset: txt.height * (tick_marks.length / 100),
+      top: txt.top,
+      right: txt.left + txt.width,
+      left: txt.left,
+      bottom: txt.top - txt.height,
+      length: txt.height,
+      center: {
+        x: (txt.width / 2) + txt.left,
+        y: txt.top - (txt.height / 2),
+      }
+    }, tick_marks.placement);
+  }
 }
 
-
-function create_from_labels() {
-  dialog.hide();
-  var textFrames = filter_elements_from_selection(create_element_node_test("typename", "TextFrame"))
-    .sort(sort_text_fields_left_to_right)
-    .filter(filter_text_fields_by_content_regex(/^[#]*$/))
-    .map(map_numbers);
-}
-
-function create_from_rectangle() {}
+var textFrames = filter_elements_from_selection(create_element_node_test("typename", "TextFrame"))
+  .sort(sort_text_fields_left_to_right)
+  .filter(filter_text_fields_by_content_regex(/^[#]*$/));
 
 var dialog = get_dialog(create_from_labels, create_from_rectangle);
+
+function create_from_rectangle() {
+
+}
+
+function create_from_labels() {
+  textFrames.map(map_numbers);
+  dialog.hide();
+}
+
+if (textFrames.length) { dialog.set_import_type_to.label(); }
+else { dialog.set_import_type_to.rectangle(); }
+
 dialog.init();
 
 /**

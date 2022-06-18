@@ -1,7 +1,6 @@
 /**
  * @author Shane Jennings <cshanejennings@gmail.com>
- * @url
-C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-incrementor.jsx
+ * @url C:\Program Files\Adobe\Adobe Illustrator 2022\Presets\en_US\Scripts\ai-incrementor.jsx
  */
 #target illustrator
 #script "Ai Incrementor"
@@ -448,7 +447,7 @@ create_from_rect_btn.onClick = create_from_rectangle;
 
 function hide() { auto_increment_dialog.hide(); }
 
-function init(import_type) {
+function init() {
   tick_marks_enable_checkbox.value = true;
   update_label_count();
   update_template()
@@ -467,16 +466,8 @@ function init(import_type) {
   }
 }
 
-
 /** end dialog.jsx code **/
 
-
-// https://ioconsolerykerprod.blob.core.windows.net/adobe-apiplatform-prod-ioconsole-cdn/installers/ai/scripting/2022/vb_script/v2/Illustrator%20VBScript%20Reference.pdf?sv=2020-04-08&se=2022-06-17T02%3A08%3A18Z&sr=c&sp=r&sig=qX4f2Lxcf7uX%2FnqeS6vRbeya1Ej4h4ZS0jkck9%2FWvEY%3D
-// https://ai-scripting.docsforadobe.dev/introduction/viewingTheObjectModel.html
-// https://ai-scripting.docsforadobe.dev/introduction/executingScripts.html
-// https://helpx.adobe.com/in/illustrator/using/automation-scripts.html
-// https://developer.adobe.com/console/home
-// https://community.adobe.com/t5/illustrator-discussions/how-can-i-create-a-shortcut-to-execute-a-script/m-p/10524390
 // polyfills (not all are used)
 Array.prototype.map=function(c){var a=[],i=0,t=this;for(i;i<t.length;i++){a.push(c(t[i],i,t));}return a;}
 Array.prototype.filter=function(c){var a=[],i=0,t=this;for(i;i<t.length;i++){if(c.call(t,t[i],i,t)){a.push(t[i]);}}return a;}
@@ -506,34 +497,78 @@ function filter_text_fields_by_content_regex(regex) {
 }
 
 // https://ai-scripting.docsforadobe.dev/jsobjref/Lines.html
-function add_tick_mark(x, top, h) {
-  var bottom = top + h;
-  app.activeDocument.pathItems.add().setEntirePath([[x, top], [x, bottom]]);
+function add_tick_mark(props, placement) {
+  var points = [],
+      length = props.length,
+      start = { x: props.center.x, y: props.center.y },
+      line = app.activeDocument.pathItems.add();
+  switch (placement) {
+    case "Above Label": start.y = props.top + props.offset;
+      points.push([ start.x, start.y ]);
+      points.push([ start.x, start.y + length ]);
+    break;
+    case "Below Label": start.y = props.bottom - props.offset;
+      points.push([ start.x, start.y ]);
+      points.push([ start.x, start.y - length]);
+    break;
+    case "Left of Label": start.x = props.left - props.offset;
+        points.push([start.x, start.y]);
+        points.push([start.x - length, start.y]);
+    break;
+    case "Right of Label": start.x = props.right + props.offset;
+      points.push([ start.x, start.y]);
+      points.push([ start.x + length, start.y]);
+    break;
+    default:
+  }
+  line.stroked = true;
+  line.setEntirePath(points);
 }
 
 // https://ai-scripting.docsforadobe.dev/jsobjref/TextFrameItem.html
 function map_numbers(txt, i) {
-  var num = i + 1,
+  var setting = dialog.setting,
+      inc = setting.labels.increment,
+      tick_marks = setting.tick_marks,
+      num = (i * inc) + inc,
       pad = txt.contents.replace(/#/g, "0"),
       contents = (pad + num).substr(-pad.length);
   txt.paragraphs[0].justification = Justification.CENTER;
   txt.contents = (parseInt(contents, 10) === num) ? contents : num;
-  var x = (txt.left + (txt.width / 2)), y = (txt.top + (txt.height / 2));
-  add_tick_mark(x, y, txt.height);
+  if (tick_marks.enabled) {
+    add_tick_mark({
+      offset: txt.height * (tick_marks.length / 100),
+      top: txt.top,
+      right: txt.left + txt.width,
+      left: txt.left,
+      bottom: txt.top - txt.height,
+      length: txt.height,
+      center: {
+        x: (txt.width / 2) + txt.left,
+        y: txt.top - (txt.height / 2),
+      }
+    }, tick_marks.placement);
+  }
 }
 
-
-function create_from_labels() {
-  dialog.hide();
-  var textFrames = filter_elements_from_selection(create_element_node_test("typename", "TextFrame"))
-    .sort(sort_text_fields_left_to_right)
-    .filter(filter_text_fields_by_content_regex(/^[#]*$/))
-    .map(map_numbers);
-}
-
-function create_from_rectangle() {}
+var textFrames = filter_elements_from_selection(create_element_node_test("typename", "TextFrame"))
+  .sort(sort_text_fields_left_to_right)
+  .filter(filter_text_fields_by_content_regex(/^[#]*$/));
 
 var dialog = get_dialog(create_from_labels, create_from_rectangle);
+
+function create_from_rectangle() {
+
+}
+
+function create_from_labels() {
+  textFrames.map(map_numbers);
+  dialog.hide();
+}
+
+if (textFrames.length) { dialog.set_import_type_to.label(); }
+else { dialog.set_import_type_to.rectangle(); }
+
 dialog.init();
 
 /**

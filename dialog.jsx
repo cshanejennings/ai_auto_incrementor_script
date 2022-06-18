@@ -1,3 +1,4 @@
+
 // created using https://scriptui.joonas.me/
 // to edit, paste dialog-config.json into import popup
 
@@ -438,7 +439,7 @@ create_from_rect_btn.onClick = create_from_rectangle;
 
 function hide() { auto_increment_dialog.hide(); }
 
-function init(import_type) {
+function init() {
   tick_marks_enable_checkbox.value = true;
   update_label_count();
   update_template()
